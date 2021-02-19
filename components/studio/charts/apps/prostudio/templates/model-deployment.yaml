@@ -1,0 +1,49 @@
+{{- range $models := .Values.models }}  
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Release.Name }}-{{ $models.name }}
+  namespace: {{ $.Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      release: {{ $.Release.Name }}
+      app: prosilico
+      project: {{ $.Values.project.slug }}
+      type: app
+      pod: {{ $models.name }}
+  template:
+    metadata:
+      labels:
+        release: {{ $.Release.Name }}
+        app: prosilico
+        project: {{ $.Values.project.slug }}
+        type: app
+        pod: {{ $models.name }}
+    spec:
+      containers:
+      - name: {{ $models.name }}
+        image: {{ $.Values.service_image }}
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8080
+        env:
+          - name: MODEL_FILE
+            value: "/models/{{ $models.name }}.jar"
+          - name: LICENSE_FILE
+            value: "/license/cpsign.license"
+          - name: SERVICE_TYPE
+            value: "cp_{{ $models.type }}"
+        volumeMounts:
+        - name: license
+          mountPath: "/license"
+          readOnly: true
+      volumes:
+      - name: license
+        secret:
+          secretName: {{ $.Release.Name }}-license
+---
+{{- end }}

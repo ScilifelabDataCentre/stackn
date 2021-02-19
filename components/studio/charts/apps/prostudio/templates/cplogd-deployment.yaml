@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-cplogd-dep
+  namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      release: {{ .Release.Name }}
+      app: prosilico
+      project: {{ .Values.project.slug }}
+      type: app
+      pod: cplogd
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        # prometheus.io/port: "8501"
+      labels:
+        release: {{ .Release.Name }}
+        app: prosilico
+        project: {{ .Values.project.slug }}
+        type: app
+        pod: cplogd
+    spec:
+      containers:
+      - image: pharmbio/cplogd:master
+        imagePullPolicy: Always
+        name: cplogd
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2000Mi
+          requests:
+            cpu: 100m
+            memory: 500Mi
+        volumeMounts:
+        - mountPath: /wildfly/modules/com/genettasoft/license/main
+          name: cpp-license-vol
+      - name: gatekeeper
+        image: {{ .Values.gatekeeper.image }}
+        imagePullPolicy: Always
+        args:
+          - --config=/etc/secrets/gatekeeper.yaml
+        ports:
+          - containerPort: {{ .Values.gatekeeper.port }}
+        volumeMounts:
+        - name: gatekeeper-config
+          mountPath: /etc/secrets/
+
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: cpp-license-vol
+        secret:
+          defaultMode: 420
+          secretName: {{ .Release.Name }}-cplogd
+      - name: gatekeeper-config
+        configMap:
+          name: {{ .Release.Name }}-cplogd-gk
