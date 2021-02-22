@@ -5,6 +5,7 @@ global:
   domain: platform.local
 
 ingress:
+  v1beta1: false
   secretName: prod-ingress
 
 prostudio:
