@@ -40,7 +40,8 @@ spec:
           backend:
             service:
               name: {{ .Release.Name }}-keycloak-proxy-svc
-              port: 80
+              port: 
+                number: 80
           pathType: ImplementationSpecific
   tls:
     - secretName: {{ .Values.ingress.secretName }}
