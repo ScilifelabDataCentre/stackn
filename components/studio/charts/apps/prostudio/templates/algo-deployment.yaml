@@ -1,50 +1,50 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ .Release.Name }}-algo
-  namespace: {{ .Values.namespace }}
-  annotations:
-    reloader.stakater.com/auto: "true"
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      release: {{ .Release.Name }}
-      app: prosilico
-      project: {{ .Values.project.slug }}
-      type: app
-      pod: algo
-  template:
-    metadata:
-      labels:
-        release: {{ .Release.Name }}
-        app: prosilico
-        project: {{ .Values.project.slug }}
-        type: app
-        pod: algo
-    spec:
-      containers:
-      - name: algorithms
-        image: {{ .Values.algorithms.image }}
-        imagePullPolicy: Always
-        ports:
-          - containerPort: {{ .Values.algorithms.port }}
-        env:
-        {{- range $model := .Values.models }}  
-          - name: {{ $model.name }}
-            value: http://{{ $.Release.Name }}-{{ $model.name }}/api/v2/predict
-        {{- end }}
-      - name: gatekeeper
-        image: {{ .Values.gatekeeper.image }}
-        imagePullPolicy: Always
-        args:
-          - --config=/etc/secrets/gatekeeper.yaml
-        ports:
-          - containerPort: {{ .Values.gatekeeper.port }}
-        volumeMounts:
-        - name: gatekeeper-config
-          mountPath: /etc/secrets/
-      volumes:
-      - name: gatekeeper-config
-        configMap:
-          name: {{ .Release.Name }}-algo-gk
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: {{ .Release.Name }}-algo
+#   namespace: {{ .Values.namespace }}
+#   annotations:
+#     reloader.stakater.com/auto: "true"
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       release: {{ .Release.Name }}
+#       app: prosilico
+#       project: {{ .Values.project.slug }}
+#       type: app
+#       pod: algo
+#   template:
+#     metadata:
+#       labels:
+#         release: {{ .Release.Name }}
+#         app: prosilico
+#         project: {{ .Values.project.slug }}
+#         type: app
+#         pod: algo
+#     spec:
+#       containers:
+#       - name: algorithms
+#         image: {{ .Values.algorithms.image }}
+#         imagePullPolicy: Always
+#         ports:
+#           - containerPort: {{ .Values.algorithms.port }}
+#         env:
+#         {{- range $model := .Values.models }}  
+#           - name: {{ $model.name }}
+#             value: http://{{ $.Release.Name }}-{{ $model.name }}/api/v2/predict
+#         {{- end }}
+#       - name: gatekeeper
+#         image: {{ .Values.gatekeeper.image }}
+#         imagePullPolicy: Always
+#         args:
+#           - --config=/etc/secrets/gatekeeper.yaml
+#         ports:
+#           - containerPort: {{ .Values.gatekeeper.port }}
+#         volumeMounts:
+#         - name: gatekeeper-config
+#           mountPath: /etc/secrets/
+#       volumes:
+#       - name: gatekeeper-config
+#         configMap:
+#           name: {{ .Release.Name }}-algo-gk

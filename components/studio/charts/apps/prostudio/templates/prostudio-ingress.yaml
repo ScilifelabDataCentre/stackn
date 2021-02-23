@@ -4,8 +4,6 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-ingress
   namespace: {{ .Values.namespace }}
-  labels:
-    io.kompose.service: {{ .Release.Name }}-ingress
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "5500m"
 spec:
@@ -27,8 +25,6 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-ingress
   namespace: {{ .Values.namespace }}
-  labels:
-    io.kompose.service: {{ .Release.Name }}-ingress
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "5500m"
 spec:

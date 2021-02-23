@@ -39,7 +39,46 @@ spec:
         volumeMounts:
         - name: gatekeeper-config
           mountPath: /etc/secrets/
+      - name: reverse-proxy
+        image: nginx:alpine
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: rp-conf
+          mountPath: /etc/nginx
+      - name: algorithms
+        image: {{ .Values.algorithms.image }}
+        imagePullPolicy: Always
+        ports:
+          - containerPort: {{ .Values.algorithms.port }}
+        env:
+        {{- range $model := .Values.models }}  
+          - name: {{ $model.name }}
+            value: http://{{ $.Release.Name }}-{{ $model.name }}/api/v2/predict
+        {{- end }}
+      - image: pharmbio/cplogd:master
+        imagePullPolicy: Always
+        name: cplogd
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2000Mi
+          requests:
+            cpu: 100m
+            memory: 500Mi
+        volumeMounts:
+        - mountPath: /wildfly/modules/com/genettasoft/license/main
+          name: cpp-license-vol
       volumes:
+      - name: cpp-license-vol
+        secret:
+          defaultMode: 420
+          secretName: {{ .Release.Name }}-cplogd
       - name: gatekeeper-config
         configMap:
           name: {{ .Release.Name }}-gatekeeper-config
+      - name: rp-conf
+        configMap:
+          name: {{ .Release.Name }}-rp-config
