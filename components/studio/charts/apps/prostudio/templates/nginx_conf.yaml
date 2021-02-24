@@ -1,0 +1,26 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-rp-config
+  namespace: {{ .Values.namespace }}
+data:
+  # Configuration values can be set as key-value properties
+  nginx.conf: |-
+    worker_processes 1;
+    events { worker_connections 1024; }
+    http {
+        server {
+            listen 1234;
+
+            location / {
+                proxy_pass http://127.0.0.1:3000;
+            }
+            location ~ ^/models(/?)(.*) {
+              proxy_pass http://127.0.0.1:{{ .Values.algorithms.port }}/$2;
+            }
+            location ~ ^/cplogd(/?)(.*) {
+              client_max_body_size 0;
+              proxy_pass http://127.0.0.1:{{ .Values.cplogd.port }}/$2$is_args$args;
+            }
+        }
+    }
