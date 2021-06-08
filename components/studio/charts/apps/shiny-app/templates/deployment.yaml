@@ -39,7 +39,7 @@ spec:
         - name: gatekeeper-config
           mountPath: /etc/secrets/
       - name: dash
-        image: hamzaisaeed/dash:latest
+        image: hamzaisaeed/wordcloud
         imagePullPolicy: Always
         # command: ["/bin/bash"]
         # args: ["-c", "cd ..;./deploy.sh"]
@@ -48,7 +48,7 @@ spec:
             memory: 1Gi
             cpu: 1000m
         ports:
-          - containerPort: 8050
+          - containerPort: 3838
         env:
         {{ if .Values.deployment.debug }}
         - name: DEBUG
@@ -59,11 +59,6 @@ spec:
         {{ end }}
         - name: DEPLOYMENT_PATH
           value: {{ .Values.deployment.path }}
-        volumeMounts:
-        {{- range $key, $value := .Values.apps.volume }}
-        - name: {{ $key }}
-          mountPath: /testing
-        {{- end }}
       volumes:
       - name: gatekeeper-config
         configMap:

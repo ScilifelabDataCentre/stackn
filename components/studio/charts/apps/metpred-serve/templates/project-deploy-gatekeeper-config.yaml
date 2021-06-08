@@ -16,9 +16,9 @@ data:
     resources:
     - uri: /*
       roles:
-      - {{ .Values.project.client_id }}:admin
-      - {{ .Values.project.client_id }}:member
-      - {{ .Values.project.client_id }}:guest
+      - {{ .Values.project.slug }}:admin
+      - {{ .Values.project.slug }}:member
+      - {{ .Values.project.slug }}:guest
       require-any-role: true
     {{ else if .Values.permissions.public }}
     enable-default-deny: false
@@ -37,9 +37,13 @@ data:
     enable-session-cookies: true
     enable-logging: true
     enable-json-logging: true
-    encryption-key: {{ randAlphaNum 32 }}
-    enable-refresh-tokens: true
-    upstream-url: http://localhost:8050
+    upstream-url: http://localhost:1234
+    server-write-timeout: 500s
+    upstream-response-header-timeout: 500s
+    server-idle-timeout: 500s
+    enable-authorization-header: false
+    add-claims:
+      - email
     {{ if .Values.gatekeeper.skip_tls }}
     skip-openid-provider-tls-verify: true
     {{ end }}

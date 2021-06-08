@@ -4,8 +4,10 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-ingress
   namespace: {{ .Values.namespace }}
-  annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "500m"
+  labels:
+    io.kompose.service: {{ .Release.Name }}-ingress
+  # annotations:
+  #   nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
   rules:
     - host: {{ .Release.Name }}.{{ .Values.global.domain }}
@@ -13,8 +15,8 @@ spec:
         paths:
         - path: /
           backend:
-            serviceName: {{ .Release.Name }}
-            servicePort: 80
+            serviceName: {{ .Release.Name }}-keycloak-proxy-svc
+            servicePort: 3001
   tls:
     - secretName: {{ .Values.ingress.secretName }}
       hosts:
@@ -25,8 +27,10 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-ingress
   namespace: {{ .Values.namespace }}
-  annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "500m"
+  labels:
+    io.kompose.service: {{ .Release.Name }}-ingress
+  # annotations:
+  #   nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
   rules:
     - host: {{ .Release.Name }}.{{ .Values.global.domain }}
@@ -35,13 +39,13 @@ spec:
         - path: /
           backend:
             service:
-              name: {{ .Release.Name }}
+              name: {{ .Release.Name }}-keycloak-proxy-svc
               port:
-                number: 80
+                number: 3001
           pathType: ImplementationSpecific
   tls:
-    - secretName: prod-ingress
+    - secretName: {{ .Values.ingress.secretName }}
       hosts:
-        - {{ .Release.Name }}.{{ .Values.global.domain }}
+        - {{ .Values.global.domain }}
 
 {{- end }}

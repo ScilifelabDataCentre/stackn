@@ -33,8 +33,8 @@ global:
 imagePullSecrets:
   - name: regcred
 
-dash:
-  port: 8050
+shiny:
+  port: 3838
 
 deployment:
   debug: false

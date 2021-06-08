@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appname }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      release: {{ $.Release.Name }}
+      app: tetris
+      project: {{ $.Values.project.slug }}
+      type: app
+      pod: tetris
+  template:
+    metadata:
+      labels:
+        release: {{ $.Release.Name }}
+        app: tetris
+        project: {{ $.Values.project.slug }}
+        type: app
+        pod: tetris
+    spec:
+      containers:
+      - name: gatekeeper
+        image: scaleoutsystems/gatekeeper:latest #registry-dev.local.stackn.dev/gatekeeper:latest #
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 50m
+            memory: 512Mi
+        args:
+          - --config=/etc/secrets/gatekeeper.yaml
+        ports:
+          - containerPort: 9090
+        volumeMounts:
+        - name: gatekeeper-config
+          mountPath: /etc/secrets/
+
+      - name: predgui
+        image: hamzaisaeed/predgui-mm:latest
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+        ports:
+          - containerPort: 3001
+        command: ["/bin/bash"]
+        args: ["-c", "cd ..;./deploy.sh"]
+      volumes:
+      - name: gatekeeper-config
+        configMap:
+          name: {{ .Release.Name }}-gatekeeper-config
