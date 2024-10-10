@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.db import transaction
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 
 from common.models import EmailVerificationTable, UserProfile
 from studio.utils import get_logger
@@ -113,6 +114,7 @@ class UserForm(BootstrapErrorFormMixin, UserCreationForm):
             "Swedish university</a> email address. If you are not affiliated with a Swedish university, "
             "your account request will be reviewed manually."
         ),
+        # disabled = True,
     )
     password1 = forms.CharField(
         min_length=8,
@@ -321,3 +323,63 @@ class TokenVerificationForm(forms.Form):
         fields = [
             "token",
         ]
+
+
+# creating a new form because UserForm is a UserCreationForm, which means 'exclude' in Meta or change in
+# initialization won't work
+class UserEditForm(BootstrapErrorFormMixin, forms.ModelForm):
+    first_name = forms.CharField(
+        min_length=1,
+        max_length=30,
+        label="First name",
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    last_name = forms.CharField(
+        min_length=1,
+        max_length=30,
+        label="Last name",
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    email = forms.EmailField(
+        max_length=254,
+        label="Email address",
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+        help_text=mark_safe("Email address can not be changed. Please email serve@scilifelab.se with any questions."),
+        disabled=True,
+    )
+
+    required_css_class = "required"
+
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "password1",
+            "password2",
+        ]
+        exclude = [
+            "username",
+            "password1",
+            "password2",
+        ]
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.data})"
+
+
+class ProfileEditForm(ProfileForm):
+    class Meta(ProfileForm.Meta):
+        exclude = [
+            "note",
+            "why_account_needed",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super(ProfileEditForm, self).__init__(*args, **kwargs)
+        self.fields["affiliation"].disabled = True
+        self.fields[
+            "affiliation"
+        ].help_text = "Affiliation can not be changed. Please email serve@scilifelab.se with any questions."
